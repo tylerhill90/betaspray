@@ -1,0 +1,29 @@
+{% extends 'base.html' %} 
+
+{% block body %}
+<div class="mx-auto">
+  <h1 class="text-center">{{ wall.name }}</h1>
+  {% if user == wall.owner %}
+    <p class="text-center">
+      <span><a href="{% url 'walls:update' wall.id %}" class="text-primary px-2">Rename</a></span>
+      <span><a href="{% url 'walls:delete' wall.id %}" class="text-danger px-2">Delete</a></span>
+      <span><a href="{% url 'walls:add_route' wall.id %}" class="text-primary px-2">Add Route</a></span>
+    </p>
+  {% endif %}
+</div>
+<div class="row pb-5">
+  <div class="col-md-8">
+    <img src="{{wall.image.url}}" alt="" width="100%" />
+  </div>
+  <div class="col-md-4">
+    <h4>Routes:</h4>
+      <div>
+        {% for route in wall.routes.all %}
+          <li><a>{{ route.name }}</a></li>
+        {% endfor %}
+      </div>
+    <p>{{ wall.description }}</p>
+  </div>
+</div>
+
+{% endblock body %}

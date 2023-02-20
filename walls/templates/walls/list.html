@@ -1,0 +1,17 @@
+{% extends 'base.html' %} 
+
+{% block body %}
+
+<div class="row">
+  <a class="nav-link active" href="{% url 'walls:create' %}">Add a wall</a>
+  {% for wall in walls %}
+  <div class="col-lg-3 col-md-4 col-xs-6">
+    <a href="{% url 'walls:detail' wall.id %}" class="d-block mb-4 h-100">
+      <h3 class="text-center">{{wall.name}}</h3>
+      <img src="{{wall.image.url}}" class="img-fluid rounded" alt="{{wall.name}}" />
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock body %}
