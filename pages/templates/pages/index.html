@@ -1,0 +1,14 @@
+{% extends 'base.html' %} 
+
+{% block body %}
+
+<div class="mx-auto">
+  <div class="text-center w-100">
+    <ul class="list-unstyled">
+        <li><h1>BetaSpray</h1></li>
+        <li><a href="{% url 'users:login' %}" class="text-primary ml-2">Login</a></li>
+        <li><a href="{% url 'users:signup' %}" class="text-primary ml-2">Create account</a></li>
+    </ul>
+  </div>
+</div>
+{% endblock body %}
