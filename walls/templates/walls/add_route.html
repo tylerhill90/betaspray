@@ -16,6 +16,13 @@
   <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form|crispy }}
+    {% if form.non_field_errors %}
+    <ul>
+        {% for error in form.non_field_errors %}
+        <li>{{error}}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
     <button type="submit" class="btn btn-success mb-3">Add Route</button>
   </form>
 </div>

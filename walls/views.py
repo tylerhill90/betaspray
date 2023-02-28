@@ -1,15 +1,22 @@
 from django.shortcuts import render, get_object_or_404
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
+from django.contrib import messages
 
 from .models import (
     Wall,
     Route
 )
 
-from .forms import (RouteForm)
+from .forms import (
+    WallForm,
+    RouteForm, 
+    WallHoldForm
+)
 
 
 class WallListView(ListView):
@@ -19,6 +26,7 @@ class WallListView(ListView):
     template_name = 'walls/list.html'
 
     context_object_name = 'walls'
+
 
 class WallTagListView(WallListView):
 
@@ -36,6 +44,7 @@ class WallTagListView(WallListView):
         context["tag"] = self.get_tag()
         return 
         
+
 class WallDetailView(DetailView):
 
     model = Wall
@@ -43,6 +52,7 @@ class WallDetailView(DetailView):
     template_name = 'walls/detail.html'
 
     context_object_name = 'wall'
+
 
 class WallCreateView(LoginRequiredMixin, CreateView):
 
@@ -52,13 +62,30 @@ class WallCreateView(LoginRequiredMixin, CreateView):
 
     template_name = 'walls/create.html'
 
-    success_url = reverse_lazy('walls:list')
-
     def form_valid(self, form):
-
         form.instance.owner = self.request.user
+        return super(WallCreateView, self).form_valid(form)
 
-        return super().form_valid(form)
+    def get_success_url(self):
+        print(self.kwargs)
+        return reverse('walls:add_holds', kwargs={'pk': self.object.id})
+
+
+@login_required
+def add_wall_holds(request, pk):
+    wall = get_object_or_404(Wall, pk=pk)
+
+    if request.method == 'POST':
+        pass
+
+    else:
+        form = WallHoldForm()
+        context = {
+            'form': form,
+            'pk': pk
+        }
+        return render(request, 'walls/add_hold.html', context)
+
 
 class UserIsSubmitter(UserPassesTestMixin):
     # Custom method
@@ -72,6 +99,7 @@ class UserIsSubmitter(UserPassesTestMixin):
         else:
             raise PermissionDenied('Sorry you are not allowed here')
 
+
 class WallUpdateView(UserIsSubmitter, UpdateView):
 
     template_name = 'walls/update.html'
@@ -82,6 +110,7 @@ class WallUpdateView(UserIsSubmitter, UpdateView):
 
     success_url = reverse_lazy('walls:list')
 
+
 class WallDeleteView(UserIsSubmitter, DeleteView):
 
     template_name = 'walls/delete.html'
@@ -90,24 +119,65 @@ class WallDeleteView(UserIsSubmitter, DeleteView):
 
     success_url = reverse_lazy('walls:list')
 
-class RouteCreateView(LoginRequiredMixin, CreateView):
 
-    model = Route
+@login_required
+def create_wall(request):
+    form = WallForm()
 
-    form_class = RouteForm
+    if request.method == 'POST':
+        update_request = request.POST.copy()
+        update_request['owner'] = request.user
+        form = WallForm(update_request, request.FILES)
+        if form.is_valid():
+            new_wall = Wall(
+                owner = request.user,
+                name = form.cleaned_data['name'],
+                image = form.cleaned_data['image'],
+            )
+            new_wall.save()
+            return HttpResponseRedirect(reverse_lazy('walls:add_holds', kwargs={'pk': new_wall.id}))
+    
+    context = {'form': form}
+    return render(request, 'walls/create.html', context)
 
-    template_name = 'walls/add_route.html'
 
-    def get_success_url(self):
-        return reverse_lazy('walls:detail', kwargs={'pk': self.object.wall_id})
+@login_required
+def create_route(request, pk):
+    wall = get_object_or_404(Wall, pk=pk)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['wall'] = Wall.objects.filter(image=self.object)
-        return context
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        form.instance.wall_id = self.kwargs.get('pk')
-
-        return super().form_valid(form)
+    if request.method == 'POST':
+        update_request = request.POST.copy()
+        update_request['wall_id'] = wall.pk
+        form = RouteForm(update_request)
+        if form.is_valid():
+            if Route.objects.filter(wall=wall, name=form.cleaned_data['name']).exists():
+                messages.error(request, "This wall already has a route with that name")
+                context = {
+                    'form': form,
+                    'pk': pk
+                }
+                form = RouteForm()
+                return render(request, 'walls/add_route.html', context)
+            Route(
+                owner = request.user,
+                wall = wall,
+                name = form.cleaned_data['name'],
+                grade = form.cleaned_data['grade'],
+                tags = form.cleaned_data['tags'],
+                notes = form.cleaned_data['notes']
+            ).save()
+            return HttpResponseRedirect(reverse_lazy('walls:detail', kwargs={'pk': pk}))
+        else:
+            form = RouteForm()
+            context = {
+                'form': form,
+                'pk': pk
+            }
+            return render(request, 'walls/add_route.html', context)        
+    else:
+        form = RouteForm()
+        context = {
+            'form': form,
+            'pk': pk
+        }
+        return render(request, 'walls/add_route.html', context)

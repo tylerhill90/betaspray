@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     # BetaSpray
     'walls',
     'users',
+    'pages',
 
     # Third Party
     'taggit',

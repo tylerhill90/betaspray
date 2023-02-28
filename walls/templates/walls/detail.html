@@ -6,6 +6,7 @@
   {% if user == wall.owner %}
     <p class="text-center">
       <span><a href="{% url 'walls:update' wall.id %}" class="text-primary px-2">Rename</a></span>
+      <span><a href="{% url 'walls:add_holds' wall.id %}" class="text-primary px-2">Edit Wall Holds</a></span>
       <span><a href="{% url 'walls:delete' wall.id %}" class="text-danger px-2">Delete</a></span>
       <span><a href="{% url 'walls:add_route' wall.id %}" class="text-primary px-2">Add Route</a></span>
     </p>

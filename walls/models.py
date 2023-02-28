@@ -11,6 +11,10 @@ class Wall(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        unique_together = ('owner', 'name',)
+
+
 class Route(models.Model):
     owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     wall = models.ForeignKey(Wall, related_name='routes', on_delete=models.CASCADE)
@@ -31,9 +35,9 @@ class Route(models.Model):
         ('V12', 'V12'),
     )
     grade = models.CharField(max_length=6, choices=GRADE_CHOICES, default='V0')
-    created = models.DateTimeField(auto_now_add=True)
     tags = TaggableManager(blank=True)
     notes = models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('wall', 'name',)
