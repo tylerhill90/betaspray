@@ -125,9 +125,7 @@ def create_wall(request):
     form = WallForm()
 
     if request.method == 'POST':
-        update_request = request.POST.copy()
-        update_request['owner'] = request.user
-        form = WallForm(update_request, request.FILES)
+        form = WallForm(request.POST, request.FILES, owner=request.user)
         if form.is_valid():
             new_wall = Wall(
                 owner = request.user,
@@ -143,21 +141,12 @@ def create_wall(request):
 
 @login_required
 def create_route(request, pk):
+    form = RouteForm()
     wall = get_object_or_404(Wall, pk=pk)
 
     if request.method == 'POST':
-        update_request = request.POST.copy()
-        update_request['wall_id'] = wall.pk
-        form = RouteForm(update_request)
+        form = RouteForm(request.POST, wall_id=wall.pk)
         if form.is_valid():
-            if Route.objects.filter(wall=wall, name=form.cleaned_data['name']).exists():
-                messages.error(request, "This wall already has a route with that name")
-                context = {
-                    'form': form,
-                    'pk': pk
-                }
-                form = RouteForm()
-                return render(request, 'walls/add_route.html', context)
             Route(
                 owner = request.user,
                 wall = wall,
@@ -167,17 +156,9 @@ def create_route(request, pk):
                 notes = form.cleaned_data['notes']
             ).save()
             return HttpResponseRedirect(reverse_lazy('walls:detail', kwargs={'pk': pk}))
-        else:
-            form = RouteForm()
-            context = {
-                'form': form,
-                'pk': pk
-            }
-            return render(request, 'walls/add_route.html', context)        
-    else:
-        form = RouteForm()
-        context = {
-            'form': form,
-            'pk': pk
-        }
-        return render(request, 'walls/add_route.html', context)
+        
+    context = {
+        'form': form,
+        'pk': pk
+    }
+    return render(request, 'walls/add_route.html', context)

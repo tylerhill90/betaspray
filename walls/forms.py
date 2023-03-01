@@ -9,13 +9,15 @@ from .models import (
 
 
 class WallForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.owner = kwargs.pop('owner', None)
+        super(WallForm, self).__init__(*args, **kwargs)
+
     def clean(self):
-        cleaned_data = super().clean()
-        print(cleaned_data)
-        wall_owner = cleaned_data.get('owner')
+        cleaned_data = super(WallForm, self).clean()
         wall_name = cleaned_data.get('name')
-        if Wall.objects.filter(owner=wall_owner, name=wall_name).exists():
-            self.add_error('name', 'A wall with that name already exists.')
+        if Wall.objects.filter(owner=self.owner, name=wall_name).exists():
+            self.add_error(field='name', error=ValidationError('A wall with that name already exists.'))
         return cleaned_data
 
     class Meta:
@@ -23,21 +25,24 @@ class WallForm(forms.ModelForm):
         fields = ['name', 'image']
 
 
+class WallHoldForm(forms.ModelForm):
+    class Meta:
+        model = WallHold
+        fields = '__all__'
+
+
 class RouteForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.wall_id = kwargs.pop('wall_id', None)
+        super(RouteForm, self).__init__(*args, **kwargs)
+
     def clean(self):
-        cleaned_data = self.cleaned_data
-        if Route.objects.filter(
-            wall=self.data['wall_id'], name=cleaned_data['name']
-        ).exists():
-            raise ValidationError('A route with that name for this wall already exists.')
+        cleaned_data = super(RouteForm, self).clean()
+        route_name = cleaned_data.get('name')
+        if Route.objects.filter(wall=self.wall_id, name=route_name).exists():
+            self.add_error(field='name', error=ValidationError('A route with that name for this wall already exists.'))
         return cleaned_data
 
     class Meta:
         model = Route
         fields = ['name', 'grade', 'tags', 'notes']
-
-
-class WallHoldForm(forms.ModelForm):
-    class Meta:
-        model = WallHold
-        fields = '__all__'
