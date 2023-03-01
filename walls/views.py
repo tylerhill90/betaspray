@@ -108,7 +108,8 @@ class WallUpdateView(UserIsSubmitter, UpdateView):
 
     fields = ['name']
 
-    success_url = reverse_lazy('walls:list')
+    def get_success_url(self, **kwargs):
+        return reverse_lazy('walls:detail', kwargs={'pk': self.object.pk})
 
 
 class WallDeleteView(UserIsSubmitter, DeleteView):
