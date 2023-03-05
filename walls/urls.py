@@ -13,6 +13,7 @@ from .views import (
 
     # Routes
     create_route,
+    route_detail
 )
 
 
@@ -32,4 +33,5 @@ urlpatterns = [
 
     # Rotues
     path('walls/<int:pk>/add_route/', create_route, name='add_route'),
+    path('walls/<int:pk>/route/<int:route_pk>', route_detail, name='route_detail'),
 ]

@@ -17,7 +17,7 @@ class WallForm(forms.ModelForm):
         cleaned_data = super(WallForm, self).clean()
         wall_name = cleaned_data.get('name')
         if Wall.objects.filter(owner=self.owner, name=wall_name).exists():
-            self.add_error(field='name', error=ValidationError('A wall with that name already exists.'))
+            self.add_error(field='name', error=ValidationError('You already have a wall with that name.'))
         return cleaned_data
 
     class Meta:
@@ -40,7 +40,7 @@ class RouteForm(forms.ModelForm):
         cleaned_data = super(RouteForm, self).clean()
         route_name = cleaned_data.get('name')
         if Route.objects.filter(wall=self.wall_id, name=route_name).exists():
-            self.add_error(field='name', error=ValidationError('A route with that name for this wall already exists.'))
+            self.add_error(field='name', error=ValidationError('A route with that name for already exists for this wall.'))
         return cleaned_data
 
     class Meta:

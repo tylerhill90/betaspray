@@ -148,18 +148,30 @@ def create_route(request, pk):
     if request.method == 'POST':
         form = RouteForm(request.POST, wall_id=wall.pk)
         if form.is_valid():
-            Route(
+            new_route = Route(
                 owner = request.user,
                 wall = wall,
                 name = form.cleaned_data['name'],
                 grade = form.cleaned_data['grade'],
                 tags = form.cleaned_data['tags'],
                 notes = form.cleaned_data['notes']
-            ).save()
-            return HttpResponseRedirect(reverse_lazy('walls:detail', kwargs={'pk': pk}))
+            )
+            new_route.save()
+            return HttpResponseRedirect(
+                reverse_lazy('walls:route_detail', kwargs={'pk': pk, 'route_pk': new_route.pk})
+            )
         
     context = {
         'form': form,
         'pk': pk
     }
     return render(request, 'walls/add_route.html', context)
+
+@login_required
+def route_detail(request, pk, route_pk):
+    if request.method == 'GET':
+        context = {
+            'wall': get_object_or_404(Wall, pk=pk),
+            'route': get_object_or_404(Route, pk=route_pk)
+        }
+        return render(request, 'walls/route_detail.html', context)

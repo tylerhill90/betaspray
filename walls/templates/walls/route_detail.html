@@ -2,10 +2,10 @@
 
 {% block body %}
 <div class="mx-auto">
-  <h1 class="text-center">{{ wall.name }}</h1>
-  {% if user == wall.owner %}
+  <h1 class="text-center">{{ route.name }}</h1>
+  {% if user == route.owner %}
     <p class="text-center">
-      <span><a href="{% url 'walls:update' wall.id %}" class="text-primary px-2">Rename</a></span>
+      <span><a href="{% url 'walls:update' route.id %}" class="text-primary px-2">Rename</a></span>
       <span><a href="{% url 'walls:add_holds' wall.id %}" class="text-primary px-2">Edit Wall Holds</a></span>
       <span><a href="{% url 'walls:delete' wall.id %}" class="text-danger px-2">Delete</a></span>
       <span><a href="{% url 'walls:add_route' wall.id %}" class="text-primary px-2">Add Route</a></span>
